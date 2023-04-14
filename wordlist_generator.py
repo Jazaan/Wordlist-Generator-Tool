@@ -57,4 +57,4 @@ with open(output_file, "w") as f:
     for word in wordlist:
         f.write(word + "\n")
 
-print(f"Wordlist generated and saved to {output_file}.")
+print(f"Wordlist generated and saved to {filename}.")
