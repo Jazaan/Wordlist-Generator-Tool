@@ -24,7 +24,7 @@ length = int(input("Enter the length of each word in the wordlist: "))
 include_numbers = True if input("Include numbers in the wordlist? (1/0): ") == "1" else False
 include_uppercase = True if input("Include uppercase letters in the wordlist? (1/0): ") == "1" else False
 include_symbols = True if input("Include symbols in the wordlist? (1/0): ") == "1" else False
-filename = raw_input("Enter the filename for the wordlist: ")
+filename = input("Enter the filename for the wordlist: ")  # Changed "raw_input" to "input" for Python 3 compatibility
 
 # Define characters to include in the wordlist
 chars = string.ascii_lowercase
