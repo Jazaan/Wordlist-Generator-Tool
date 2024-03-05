@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e  # Exit on error
+
 # Default settings
 characters="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+{}[];:,.<>?|"
 min_length=6
@@ -20,6 +22,25 @@ usage() {
   exit 1
 }
 
+# Function to validate positive integers
+validate_positive_integer() {
+  if ! [[ $1 =~ ^[1-9][0-9]*$ ]]; then
+    echo "Error: $2 must be a positive integer." >&2
+    exit 1
+  fi
+}
+
+# Function to display a simple animation
+animate() {
+  local chars="/-\|"
+  while :; do
+    for char in ${chars}; do
+      echo -ne "\rGenerating... ${char}"
+      sleep 0.1
+    done
+  done
+}
+
 # Parse command-line options
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -28,10 +49,12 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     -l|--min-length)
+      validate_positive_integer "$2" "Minimum length"
       min_length="$2"
       shift 2
       ;;
     -L|--max-length)
+      validate_positive_integer "$2" "Maximum length"
       max_length="$2"
       shift 2
       ;;
@@ -73,15 +96,18 @@ generate_word() {
 # Clear the output file if it already exists
 > "$output_file"
 
-# Start generating words
-if [ "$verbose" = true ]; then
-  echo "Generating wordlist..."
-fi
+# Start generating words with animation
+echo "╔══════════════════════════════╗"
+echo "║       Wordlist Generator     ║"
+echo "╚══════════════════════════════╝"
+
+animate &  # Start the animation in the background
+animation_pid=$!
 
 generate_word "" "$min_length"
 
-if [ "$verbose" = true ]; then
-  echo "Wordlist generated and saved to $output_file"
-else
-  echo "Wordlist generated and saved to $output_file (use -v for verbose output)"
-fi
+# Stop the animation
+kill -TERM "${animation_pid}" 2>/dev/null
+wait "${animation_pid}" 2>/dev/null
+
+echo -e "\nWordlist generated and saved to $output_file"
