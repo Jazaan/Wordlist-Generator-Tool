@@ -1,39 +1,78 @@
-#Overview
-The Bash Wordlist Generator is a versatile and customizable tool for generating wordlists that can be used for various purposes, including password cracking, security testing, and more. This Bash script allows you to define the character set, word length range, output file, and provides the option for verbose mode to monitor word generation progress.
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wordlist Generator Script</title>
+</head>
+<body>
 
-#Features
-Custom Character Set: Specify the characters to include in the wordlist. You can use the default character set (a-z0-9) or define your own.
+<h1>Wordlist Generator Script</h1>
 
-Variable Word Length: Set the minimum and maximum word length to generate wordlists with a range of word lengths.
+<p>This script generates wordlists based on specified parameters such as character sets, minimum and maximum lengths, and output file. Follow the steps below to use the script:</p>
 
-Custom Output File: Choose the name and location of the output file where the generated wordlist will be saved.
+<ol>
+  <li><strong>Clone the Repository:</strong></li>
+</ol>
 
-Verbose Mode: Enable verbose mode to display the progress of word generation, making it easier to track the process.
+<code>
+  git clone https://github.com/your-username/wordlist-generator.git
+</code>
 
-#Usage
-To use the Bash Wordlist Generator, simply run the script with your desired options. Here's an example command:
+<ol start="2">
+  <li><strong>Navigate to the Script Directory:</strong></li>
+</ol>
 
-./wordlist_generator.sh -c abc123 -l 4 -L 6 -o custom_wordlist.txt -
+<code>
+  cd wordlist-generator
+</code>
 
--c or --characters: Specify the characters to include in the wordlist.
+<ol start="3">
+  <li><strong>Run the Script:</strong></li>
+</ol>
 
--l or --min-length: Set the minimum word length.
+<code>
+  ./wordlist_generator.sh
+</code>
 
--L or --max-length: Set the maximum word length.
+<ol start="4">
+  <li><strong>Make the Script Executable:</strong></li>
+</ol>
 
--o or --output: Define the output file for the generated wordlist.
+<code>
+  chmod +x wordlist_generator.sh
+</code>
 
--v or --verbose: Enable verbose mode to see progress updates.
+<ol start="5">
+  <li><strong>Explore Script Options:</strong></li>
+</ol>
 
-#Getting Started
-Clone this repository to your local machine.
+<code>
+  ./wordlist_generator.sh -h
+</code>
 
-Run the wordlist_generator.sh script with your desired options as explained in the Usage section.
+<p>Adjust the script options such as character sets, minimum and maximum lengths, and output file as needed.</p>
 
-The generated wordlist will be saved to the specified output file.
+<ol start="6">
+  <li><strong>Run Examples:</strong></li>
+</ol>
 
-#Contributions
-Contributions and improvements to this project are welcome! If you have ideas for new features or enhancements, please open an issue or create a pull request.
+<code>
+  ./wordlist_generator.sh -c "AB12" -l 3 -L 4 -o custom_wordlist.txt -v
+</code>
 
-#Acknowledgments
-Special thanks to the Bash scripting community for their valuable insights and contributions.
+<p>Explore various examples to generate custom wordlists based on your requirements.</p>
+
+<ol start="7">
+  <li><strong>Verify Generated Wordlists:</strong></li>
+</ol>
+
+<code>
+  cat wordlist.txt
+</code>
+
+<p>Check the generated wordlists in the specified output files.</p>
+
+<hr>
+</body>
+</html>
