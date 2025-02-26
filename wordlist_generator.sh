@@ -13,12 +13,12 @@ verbose=false
 usage() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo "  -c, --characters CHARACTERS  Specify characters (default: all printable)"
-  echo "  -l, --min-length MIN_LENGTH  Set minimum word length (default: 6)"
-  echo "  -L, --max-length MAX_LENGTH  Set maximum word length (default: 8)"
-  echo "  -o, --output FILE            Set output file (default: wordlist.txt)"
+  echo "  -c, --characters CHARACTERS  Specify characters to include in the wordlist (default: a-z0-9)"
+  echo "  -l, --min-length MIN_LENGTH  Specify minimum word length (default: 6)"
+  echo "  -L, --max-length MAX_LENGTH  Specify maximum word length (default: 8)"
+  echo "  -o, --output FILE            Specify the output file (default: wordlist.txt)"
   echo "  -v, --verbose                Enable verbose mode"
-  echo "  -h, --help                   Show this help message"
+  echo "  -h, --help                   Display this help message"
   exit 1
 }
 
@@ -28,6 +28,17 @@ validate_positive_integer() {
     echo "Error: $2 must be a positive integer." >&2
     exit 1
   fi
+}
+
+# Function to display a simple animation
+animate() {
+  local chars="/-\|"
+  while :; do
+    for char in ${chars}; do
+      echo -ne "\rGenerating... ${char}"
+      sleep 0.1
+    done
+  done
 }
 
 # Parse command-line options
@@ -64,66 +75,39 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Function to estimate total words
-estimate_combinations() {
-  total=0
-  for ((i=min_length; i<=max_length; i++)); do
-    total=$((total + ${#characters} ** i))
-  done
-  echo "$total"
-}
+# Function to generate words recursively
+generate_word() {
+  local prefix="$1"
+  local remaining_length="$2"
 
-# Function to show progress animation
-show_progress() {
-  local duration=3
-  local bar="█"
-  echo -ne "\nGenerating Wordlist: ["
-  for ((i = 0; i < 20; i++)); do
-    sleep $((duration / 20))
-    echo -ne "$bar"
-  done
-  echo "] Done!"
-}
+  if [ "$remaining_length" -eq 0 ]; then
+    echo "$prefix" >> "$output_file"
+    if [ "$verbose" = true ]; then
+      echo "Generated: $prefix"
+    fi
+    return
+  fi
 
-# Function to generate wordlist using an iterative approach
-generate_wordlist() {
-  > "$output_file"  # Clear output file
-
-  total_words=$(estimate_combinations)
-  echo "Generating Wordlist... Estimated total: $total_words words"
-
-  show_progress  # Progress animation
-
-  for ((length=min_length; length<=max_length; length++)); do
-    awk -v chars="$characters" -v len="$length" '
-    function generate(prefix, depth) {
-      if (depth == len) {
-        print prefix
-        return
-      }
-      for (i = 1; i <= length(chars); i++) {
-        generate(prefix substr(chars, i, 1), depth + 1)
-      }
-    }
-    BEGIN { generate("", 0) }
-    ' >> "$output_file"
+  for char in $(echo "$characters" | fold -w1); do
+    generate_word "$prefix$char" "$((remaining_length - 1))"
   done
 }
 
-# Display improved banner
-clear
-echo -e "\e[1;34m"
-echo "╔═════════════════════════════════════════╗"
-echo "║    🚀  ADVANCED WORDLIST GENERATOR  🚀   ║"
-echo "╠═════════════════════════════════════════╣"
-echo "║  Min Length : $min_length                  ║"
-echo "║  Max Length : $max_length                  ║"
-echo "║  Output     : $output_file                 ║"
-echo "║  Total Words: $(estimate_combinations)     ║"
-echo "╚═════════════════════════════════════════╝"
-echo -e "\e[0m"
+# Clear the output file if it already exists
+> "$output_file"
 
-# Run wordlist generation
-generate_wordlist
+# Start generating words with animation
+echo "╔══════════════════════════════╗"
+echo "║       Wordlist Generator     ║"
+echo "╚══════════════════════════════╝"
 
-echo -e "\n✅ Wordlist successfully saved to \e[1;32m$output_file\e[0m 🎉"
+animate &  # Start the animation in the background
+animation_pid=$!
+
+generate_word "" "$min_length"
+
+# Stop the animation
+kill -TERM "${animation_pid}" 2>/dev/null
+wait "${animation_pid}" 2>/dev/null
+
+echo -e "\nWordlist generated and saved to $output_file"
