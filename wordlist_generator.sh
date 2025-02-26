@@ -8,7 +8,12 @@ min_length=6
 max_length=8
 output_file="wordlist.txt"
 verbose=false
-cpu_cores=$(nproc)  # Detect number of CPU cores for parallel execution
+
+# Check if 'pv' is installed (Pipe Viewer for progress)
+if ! command -v pv &> /dev/null; then
+  echo "Error: 'pv' is not installed. Install it using: sudo apt install pv"
+  exit 1
+fi
 
 # Function to display usage information
 usage() {
@@ -65,22 +70,22 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Function to display a simple progress animation
-animate() {
-  local pid=$1
-  local spin='-\|/'
-  while kill -0 "$pid" 2>/dev/null; do
-    for i in {0..3}; do
-      printf "\rGenerating... [%c]" "${spin:$i:1}"
-      sleep 0.1
-    done
+# Function to estimate total wordlist size
+estimate_total_combinations() {
+  total=0
+  for ((length=min_length; length<=max_length; length++)); do
+    total=$((total + ${#characters} ** length))
   done
-  printf "\r\033[K"  # Clear the animation line
+  echo "$total"
 }
 
-# Optimized function to generate words iteratively
+# Optimized function to generate words iteratively with progress
 generate_wordlist() {
   > "$output_file"  # Clear previous output file
+
+  total_combinations=$(estimate_total_combinations)
+  
+  echo -e "\nGenerating Wordlist... Estimated total: $total_combinations words\n"
 
   for ((length=min_length; length<=max_length; length++)); do
     awk -v chars="$characters" -v len="$length" '
@@ -94,27 +99,24 @@ generate_wordlist() {
       }
     }
     BEGIN { generate("", 0) }
-    ' | xargs -P "$cpu_cores" -I {} echo {} >> "$output_file"
+    ' | pv -l -s "$total_combinations" >> "$output_file"
   done
 }
 
-# Display the new stylish banner
+# Display banner
 clear
 echo -e "\e[1;32m"  # Set color to green
 echo "┌───────────────────────────────────────────┐"
-echo "│       🔥 Wordlist Generator 🔥           │"
+echo "│       🚀 Wordlist Generator v3.0 🚀      │"
 echo "├───────────────────────────────────────────┤"
-echo "│ Min Length  : $min_length                 │"
-echo "│ Max Length  : $max_length                 │"
-echo "│ Output File : $output_file                │"
-echo "│ CPU Cores   : $cpu_cores                  │"
+echo "│ Min Length  : $min_length                          │"
+echo "│ Max Length  : $max_length                          │"
+echo "│ Output File : $output_file                         │"
+echo "│ Total Words : $(estimate_total_combinations)       │"
 echo "└───────────────────────────────────────────┘"
 echo -e "\e[0m"  # Reset color
 
-# Start the generator
-generate_wordlist &
-pid=$!
-animate $pid  # Show spinner while generating
-wait $pid  # Wait for completion
+# Start wordlist generation with progress
+generate_wordlist
 
 echo -e "\n✅ Wordlist generated and saved to \e[1;34m$output_file\e[0m"
