@@ -8,6 +8,7 @@ min_length=6
 max_length=8
 output_file="wordlist.txt"
 verbose=false
+cpu_cores=$(nproc)  # Detect number of CPU cores for parallel execution
 
 # Function to display usage information
 usage() {
@@ -28,17 +29,6 @@ validate_positive_integer() {
     echo "Error: $2 must be a positive integer." >&2
     exit 1
   fi
-}
-
-# Function to display a simple animation
-animate() {
-  local chars="/-\|"
-  while :; do
-    for char in ${chars}; do
-      echo -ne "\rGenerating... ${char}"
-      sleep 0.1
-    done
-  done
 }
 
 # Parse command-line options
@@ -75,39 +65,56 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Function to generate words recursively
-generate_word() {
-  local prefix="$1"
-  local remaining_length="$2"
+# Function to display a simple progress animation
+animate() {
+  local pid=$1
+  local spin='-\|/'
+  while kill -0 "$pid" 2>/dev/null; do
+    for i in {0..3}; do
+      printf "\rGenerating... [%c]" "${spin:$i:1}"
+      sleep 0.1
+    done
+  done
+  printf "\r\033[K"  # Clear the animation line
+}
 
-  if [ "$remaining_length" -eq 0 ]; then
-    echo "$prefix" >> "$output_file"
-    if [ "$verbose" = true ]; then
-      echo "Generated: $prefix"
-    fi
-    return
-  fi
+# Optimized function to generate words iteratively
+generate_wordlist() {
+  > "$output_file"  # Clear previous output file
 
-  for char in $(echo "$characters" | fold -w1); do
-    generate_word "$prefix$char" "$((remaining_length - 1))"
+  for ((length=min_length; length<=max_length; length++)); do
+    awk -v chars="$characters" -v len="$length" '
+    function generate(prefix, depth) {
+      if (depth == len) {
+        print prefix
+        return
+      }
+      for (i = 1; i <= length(chars); i++) {
+        generate(prefix substr(chars, i, 1), depth + 1)
+      }
+    }
+    BEGIN { generate("", 0) }
+    ' | xargs -P "$cpu_cores" -I {} echo {} >> "$output_file"
   done
 }
 
-# Clear the output file if it already exists
-> "$output_file"
+# Display the new stylish banner
+clear
+echo -e "\e[1;32m"  # Set color to green
+echo "┌───────────────────────────────────────────┐"
+echo "│       🔥 Wordlist Generator 🔥           │"
+echo "├───────────────────────────────────────────┤"
+echo "│ Min Length  : $min_length                 │"
+echo "│ Max Length  : $max_length                 │"
+echo "│ Output File : $output_file                │"
+echo "│ CPU Cores   : $cpu_cores                  │"
+echo "└───────────────────────────────────────────┘"
+echo -e "\e[0m"  # Reset color
 
-# Start generating words with animation
-echo "╔══════════════════════════════╗"
-echo "║       Wordlist Generator     ║"
-echo "╚══════════════════════════════╝"
+# Start the generator
+generate_wordlist &
+pid=$!
+animate $pid  # Show spinner while generating
+wait $pid  # Wait for completion
 
-animate &  # Start the animation in the background
-animation_pid=$!
-
-generate_word "" "$min_length"
-
-# Stop the animation
-kill -TERM "${animation_pid}" 2>/dev/null
-wait "${animation_pid}" 2>/dev/null
-
-echo -e "\nWordlist generated and saved to $output_file"
+echo -e "\n✅ Wordlist generated and saved to \e[1;34m$output_file\e[0m"
