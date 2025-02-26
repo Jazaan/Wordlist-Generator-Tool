@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit script on error
+set -e  # Exit on error
 
 # Default settings
 characters="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+{}[];:,.<>?|"
@@ -9,17 +9,11 @@ max_length=8
 output_file="wordlist.txt"
 verbose=false
 
-# Check if 'pv' is installed for progress tracking
-if ! command -v pv &> /dev/null; then
-  echo "Error: 'pv' is not installed. Install it using: sudo apt install pv"
-  exit 1
-fi
-
 # Function to display usage information
 usage() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo "  -c, --characters CHARACTERS  Specify characters for the wordlist (default: all printable chars)"
+  echo "  -c, --characters CHARACTERS  Specify characters (default: all printable)"
   echo "  -l, --min-length MIN_LENGTH  Set minimum word length (default: 6)"
   echo "  -L, --max-length MAX_LENGTH  Set maximum word length (default: 8)"
   echo "  -o, --output FILE            Set output file (default: wordlist.txt)"
@@ -70,22 +64,35 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# Function to estimate total wordlist size
-estimate_total_combinations() {
+# Function to estimate total words
+estimate_combinations() {
   total=0
-  for ((length=min_length; length<=max_length; length++)); do
-    total=$((total + ${#characters} ** length))
+  for ((i=min_length; i<=max_length; i++)); do
+    total=$((total + ${#characters} ** i))
   done
   echo "$total"
 }
 
-# Optimized function to generate words iteratively with progress
-generate_wordlist() {
-  > "$output_file"  # Clear previous output file
+# Function to show progress animation
+show_progress() {
+  local duration=3
+  local bar="█"
+  echo -ne "\nGenerating Wordlist: ["
+  for ((i = 0; i < 20; i++)); do
+    sleep $((duration / 20))
+    echo -ne "$bar"
+  done
+  echo "] Done!"
+}
 
-  total_combinations=$(estimate_total_combinations)
-  
-  echo -e "\nGenerating Wordlist... Estimated total: $total_combinations words\n"
+# Function to generate wordlist using an iterative approach
+generate_wordlist() {
+  > "$output_file"  # Clear output file
+
+  total_words=$(estimate_combinations)
+  echo "Generating Wordlist... Estimated total: $total_words words"
+
+  show_progress  # Progress animation
 
   for ((length=min_length; length<=max_length; length++)); do
     awk -v chars="$characters" -v len="$length" '
@@ -99,24 +106,24 @@ generate_wordlist() {
       }
     }
     BEGIN { generate("", 0) }
-    ' | pv -l -s "$total_combinations" >> "$output_file"
+    ' >> "$output_file"
   done
 }
 
-# Display banner
+# Display improved banner
 clear
-echo -e "\e[1;32m"  # Set color to green
-echo "┌──────────────────────────────────────────────┐"
-echo "│       🚀 Advanced Wordlist Generator        │"
-echo "├──────────────────────────────────────────────┤"
-echo "│ Min Length  : $min_length                              │"
-echo "│ Max Length  : $max_length                              │"
-echo "│ Output File : $output_file                             │"
-echo "│ Total Words : $(estimate_total_combinations)           │"
-echo "└──────────────────────────────────────────────┘"
-echo -e "\e[0m"  # Reset color
+echo -e "\e[1;34m"
+echo "╔═════════════════════════════════════════╗"
+echo "║    🚀  ADVANCED WORDLIST GENERATOR  🚀   ║"
+echo "╠═════════════════════════════════════════╣"
+echo "║  Min Length : $min_length                  ║"
+echo "║  Max Length : $max_length                  ║"
+echo "║  Output     : $output_file                 ║"
+echo "║  Total Words: $(estimate_combinations)     ║"
+echo "╚═════════════════════════════════════════╝"
+echo -e "\e[0m"
 
-# Start wordlist generation with progress
+# Run wordlist generation
 generate_wordlist
 
-echo -e "\n✅ Wordlist generated and saved to \e[1;34m$output_file\e[0m"
+echo -e "\n✅ Wordlist successfully saved to \e[1;32m$output_file\e[0m 🎉"
