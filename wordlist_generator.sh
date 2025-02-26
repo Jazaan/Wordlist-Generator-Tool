@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e  # Exit on error
+set -e  # Exit script on error
 
 # Default settings
 characters="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()_+{}[];:,.<>?|"
@@ -9,7 +9,7 @@ max_length=8
 output_file="wordlist.txt"
 verbose=false
 
-# Check if 'pv' is installed (Pipe Viewer for progress)
+# Check if 'pv' is installed for progress tracking
 if ! command -v pv &> /dev/null; then
   echo "Error: 'pv' is not installed. Install it using: sudo apt install pv"
   exit 1
@@ -19,12 +19,12 @@ fi
 usage() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo "  -c, --characters CHARACTERS  Specify characters to include in the wordlist (default: a-z0-9)"
-  echo "  -l, --min-length MIN_LENGTH  Specify minimum word length (default: 6)"
-  echo "  -L, --max-length MAX_LENGTH  Specify maximum word length (default: 8)"
-  echo "  -o, --output FILE            Specify the output file (default: wordlist.txt)"
+  echo "  -c, --characters CHARACTERS  Specify characters for the wordlist (default: all printable chars)"
+  echo "  -l, --min-length MIN_LENGTH  Set minimum word length (default: 6)"
+  echo "  -L, --max-length MAX_LENGTH  Set maximum word length (default: 8)"
+  echo "  -o, --output FILE            Set output file (default: wordlist.txt)"
   echo "  -v, --verbose                Enable verbose mode"
-  echo "  -h, --help                   Display this help message"
+  echo "  -h, --help                   Show this help message"
   exit 1
 }
 
@@ -106,14 +106,14 @@ generate_wordlist() {
 # Display banner
 clear
 echo -e "\e[1;32m"  # Set color to green
-echo "┌───────────────────────────────────────────┐"
-echo "│       🚀 Wordlist Generator v3.0 🚀      │"
-echo "├───────────────────────────────────────────┤"
-echo "│ Min Length  : $min_length                          │"
-echo "│ Max Length  : $max_length                          │"
-echo "│ Output File : $output_file                         │"
-echo "│ Total Words : $(estimate_total_combinations)       │"
-echo "└───────────────────────────────────────────┘"
+echo "┌──────────────────────────────────────────────┐"
+echo "│       🚀 Advanced Wordlist Generator        │"
+echo "├──────────────────────────────────────────────┤"
+echo "│ Min Length  : $min_length                              │"
+echo "│ Max Length  : $max_length                              │"
+echo "│ Output File : $output_file                             │"
+echo "│ Total Words : $(estimate_total_combinations)           │"
+echo "└──────────────────────────────────────────────┘"
 echo -e "\e[0m"  # Reset color
 
 # Start wordlist generation with progress
